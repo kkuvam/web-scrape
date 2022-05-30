@@ -1,4 +1,4 @@
 notebook/.ipynb_checkpoints
 urls.txt
-scrape/et/__pycache__
-scrape/et/spiders/__pycache__
+scrape/news/__pycache__
+scrape/news/spiders/__pycache__
