@@ -34,6 +34,7 @@ class ETSpider(scrapy.Spider):
     
     def parse_item(self, response):
         # Process the individual news item
+        
         # Select the <div class="artText"> from the page
         art_text = response.xpath('//div[@class="artText"]//text()').getall()
         if art_text:
