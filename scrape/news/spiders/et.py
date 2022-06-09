@@ -1,6 +1,8 @@
 from urllib import response
 import scrapy
 import calendar
+import re
+from scrapy import Selector
 
 class ETSpider(scrapy.Spider):
     name = "et"
@@ -32,18 +34,28 @@ class ETSpider(scrapy.Spider):
         for link in links:
             yield response.follow(link, callback=self.parse_item)
     
+    
     def parse_item(self, response):
         # Process the individual news item
-        
-        # Select the <div class="artText"> from the page
-        art_text = response.xpath('//div[@class="artText"]//text()').getall()
-        if art_text:
-            # Join and clean the text similar to get_text(separator='\n', strip=True)
-            clean_text = '\n'.join([line.strip() for line in art_text if line.strip()])
-            self.logger.info(f"Extracted content from {response.url}")
-        
-            # Or yield it as an item
+       
+        # Step 1: Get the raw HTML of the <div class="artText">
+        art_div_html = response.xpath('//div[@class="artText"]').get()
+
+        if art_div_html:
+            # Step 2: Remove <style>...</style> using regex
+            # This removes entire <style> tags and their content (non-greedy match)
+            cleaned_html = re.sub(r'<style.*?>.*?</style>', '', art_div_html, flags=re.DOTALL | re.IGNORECASE)
+
+            # Step 3: Create a new selector from the cleaned HTML
+            selector = Selector(text=cleaned_html)
+
+            # Step 4: Extract and clean all text
+            text_parts = selector.xpath('//text()').getall()
+            clean_text = '\n'.join([t.strip() for t in text_parts if t.strip()])
+
             yield {
                 'url': response.url,
                 'text': clean_text
             }
+
+            self.logger.info(f"Cleaned and extracted text from {response.url}")
